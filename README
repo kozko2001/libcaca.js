@@ -20,3 +20,14 @@ Exporting the library itsef and calling the low level function on javascript,
 it's much more efficient
 
 Take a look to the demo page :) 
+
+
+Instructions to get emscriptten working on macosx
+
+1) Download emscripten from https://github.com/kripken/emscripten/wiki/Emscripten-SDK
+2) ./emsdk update
+3) ./emsdk install latest
+4) ./emsdk activate latest
+5) export PATH=$PATH:$(WHAT_SAYS_IN_THE_ACTIVATE_STATE)
+
+now you must have emcc, emconfigure and emmake on your path  

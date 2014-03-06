@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <script src="jquery.js"></script>
+    <script src="canvas2image.js"></script>
+    <script src="img2txt.js"></script>
+
+    <script language="javascript">
+      $(function()
+     {
+       var video = $("#videoElement")[0],
+           imgtag = $("#imgtag")[0];
+
+       navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
+
+       canvas = document.getElementById('canvas');
+       context = canvas.getContext('2d');
+       w = canvas.width;
+       h = canvas.height;
+       $("#capture").hide();
+
+       if (navigator.getUserMedia) {       
+         navigator.getUserMedia({video: true}, handleVideo, videoError);
+       }
+
+       function handleVideo(stream) {
+           video.src = window.URL.createObjectURL(stream);
+           $("#capture").show();
+       }
+
+       window.doCapture = function()
+       {
+           context.drawImage(video,0,0,w,h);
+
+           var bmp = Canvas2Image.saveAsRawBMP(canvas);
+           var x  = img2txt(bmp);
+
+           $("#caca").html(x);
+       }
+      
+
+       function videoError(e)
+       {
+         alert("This sample use webcam to get an image and transform to ascii art");
+       }
+      });
+    </script>
+  </head>
+  <body>
+    <button id="capture" type="button" onclick="doCapture()">Capture to Ascii Art! </button>
+    <br />
+    <div style='display: none'>
+      <input id="fileselect" type="file" accept="image/*" capture>
+      <canvas id="canvas" width="500" height="375"></canvas>
+  </div>
+      <video autoplay id="videoElement"></video>
+
+    <div id="caca">
+    </div>
+
+
+  </body>
+</html>

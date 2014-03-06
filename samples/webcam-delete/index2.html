@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <script src="jquery.js"></script>
+
+    <script language="javascript">
+      $(function()
+     {
+       var video = $("#videoElement")[0],
+           imgtag = $("#imgtag")[0];
+
+       navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
+
+       canvas = document.getElementById('canvas');
+       context = canvas.getContext('2d');
+       w = canvas.width;
+       h = canvas.height;
+
+       if (navigator.getUserMedia) {       
+         navigator.getUserMedia({video: true}, handleVideo, videoError);
+       }
+
+       function handleVideo(stream) {
+           video.src = window.URL.createObjectURL(stream);
+
+           caca_context = init_libcaca(w, h);
+           var heap = Module._malloc(w*h*3),
+               heap_len = Module._malloc(4);
+
+           setInterval(function() {
+             context.drawImage(video,0,0,w,h);
+
+             var data = context.getImageData(0, 0, w, h).data;
+             typed = new Int8Array(data);
+             Module.HEAPU8.set(typed, heap);
+
+
+             caca_dither_bitmap(caca_context.cv, 0, 0, caca_context.cols, 
+               caca_context.lines, caca_context.dither, heap);
+             var len = 0;
+             var _export = caca_export_canvas_to_memory(caca_context.cv, "html", heap_len); 
+
+             $("#caca").html(Pointer_stringify(_export));
+             Module._free(_export);
+
+         }, 50);
+       }
+      
+
+       function videoError(e)
+       {
+         alert("This sample use webcam to get an image and transform to ascii art");
+       }
+
+       function init_libcaca(w, h)
+       {
+
+         caca_create_canvas = Module.cwrap('caca_create_canvas', 'number', ['number', 'number']);
+         caca_create_dither = Module.cwrap('caca_create_dither', 'number', ['number', 'number', 
+             'number', 'number', 'number', 'number']);
+         caca_set_canvas_size = Module.cwrap('caca_set_canvas_size', 'number', ['number', 'number', 'number']);
+         caca_set_color_ansi = Module.cwrap('caca_set_color_ansi', 'number', ['number', 'number', 'number']);
+         caca_clear_canvas = Module.cwrap('caca_clear_canvas', 'number', []);
+         caca_set_dither_algorithm = Module.cwrap('caca_set_dither_algorithm', 'number', ['number', 'string']);
+         caca_dither_bitmap = Module.cwrap('caca_dither_bitmap', 'number', ['number', 'number', 'number',
+             'number', 'number', 'number', 'number']);
+         caca_export_canvas_to_memory = Module.cwrap('caca_export_canvas_to_memory', 'number', ['number', 'string', 'number']);
+
+         var cols = 60,
+             font_w = 6,
+             font_h = 10;
+             cv = caca_create_canvas(0, 0),
+             dither = caca_create_dither(32, w, h, 4 * w, 
+                0xff, 0x00ff00, 0x00ff0000, 0x0),
+             lines = cols * h * font_w / w / font_h ;
+         caca_set_canvas_size(cv, cols, lines);
+         caca_set_color_ansi(cv, 0x10, 0x20);
+         caca_clear_canvas(cv);
+         caca_set_dither_algorithm(dither, "none");
+
+         return {
+           'cols': cols,
+           'lines': lines,
+           'cv': cv,
+           'dither': dither
+         };
+                
+       }
+      });
+
+var Module = {
+  preRun: [],
+  postRun: [ function () {
+    console.log("loaded library...");
+
+  }],
+  print: function() {
+  },
+  printErr: function(text){
+    console.log(text);
+  }
+
+}
+    </script>
+  </head>
+  <body>
+    <div style='display: none'>
+      <input id="fileselect" type="file" accept="image/*" capture>
+      <video autoplay id="videoElement"></video>
+      <canvas id="canvas" width="500" height="375"></canvas>
+  </div>
+
+    <div id="caca">
+    </div>
+
+
+    <script async type="text/javascript" src="libcaca.js"></script>
+
+  </body>
+</html>

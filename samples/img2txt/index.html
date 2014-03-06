@@ -1,0 +1,110 @@
+<html>
+  <head>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/canvas2image.js"></script>
+    <script src="js/img2txt.js"></script>
+    <script language="javascript">
+
+      function draw_circle(radius, canvas, context)
+      {
+            var centerX = canvas.width / 2;
+            var centerY = canvas.height / 2;
+            var radius = 70;
+
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            context.fillStyle = 'green';
+            context.fill();
+            context.lineWidth = 5;
+            context.strokeStyle = '#003300';
+            context.stroke();
+      }
+
+      function draw_square(w, h, context)
+      {
+        context.fillStyle = "#FF0000";
+        context.fillRect(0,0,150,75);
+
+        context.fillStyle = "#0000FF";
+        context.fillRect(75,75,150,75);
+
+        context.fillStyle = "#00FF00";
+        context.fillRect(150,150,150,75);
+      }
+
+      function draw_curve(x, y, context)
+      {
+        context.beginPath();
+        context.moveTo(x, y);
+        context.quadraticCurveTo(x+100, 0, x+200, y);
+        context.lineWidth = 10;
+
+        // line color
+        context.strokeStyle = 'green';
+        context.stroke();
+      }
+
+      function draw_caca(canvas)
+      {
+        var bmp = Canvas2Image.saveAsRawBMP(canvas),
+        caca  = img2txt(bmp);
+
+        $("#caca").html(caca);
+      }
+
+      $(function(){
+
+        // initing canvas...
+        var canvas = $("#canvas")[0],
+            context = canvas.getContext('2d');
+
+        $("#load_image_btn").click(function(){
+          var url = $("#image_url").val();
+
+          var img = new Image();
+          img.src =  url;
+          img.onload = function() {
+            context.drawImage(img, 0, 0, 500, 500);
+            draw_caca(canvas);
+          }
+        });
+
+        $("#load_circle").click(function(){
+            draw_circle(70, canvas, context);
+            draw_caca(canvas);
+        });
+
+        $("#load_square").click(function(){
+          draw_square(150, 75, context)
+          draw_caca(canvas);
+        });
+
+        $("#load_curve").click(function(){
+          draw_curve(50, 150, context)
+          draw_caca(canvas);
+        });
+      });
+    </script>
+
+  </head>
+
+  <body>
+    <!--
+    This works... but bored to implement a service to avoid the crosspolicy
+    errors...
+
+    <input id="image_url" type="text" style="width: 500px" 
+    value="" />
+    <button id="load_image_btn" type="button"> load image </button>
+    <br />
+    -->
+    <button id="load_square" type="button"> Draw square </button>
+    <button id="load_circle" type="button"> Draw circle</button>
+    <button id="load_curve" type="button"> Draw curve </button>
+
+    <br />
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <span id="caca"/>
+  </body>
+</html>
