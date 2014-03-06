@@ -1,0 +1,22 @@
+
+libcaca.js
+
+A toy project to learn howto port a simple library to emscripten and not 
+die trying.
+
+There is two ways of using libcaca.js
+
+** img2txt.js
+
+This is the command line tool to convert a image to ascii art, since this
+is not compiled agains imlib2, the input format must be a bmp hopefully 
+we can use canvas2image.js (http://www.nihilogic.dk/labs/canvas2image/) 
+to transform a canvas into a bmp. A slighty modifications are need into
+canvas2image to get the raw data instead of base64 uri.
+
+** libcaca.js
+
+Exporting the library itsef and calling the low level function on javascript,
+it's much more efficient
+
+Take a look to the demo page :) 
