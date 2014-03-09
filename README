@@ -19,7 +19,7 @@ canvas2image to get the raw data instead of base64 uri.
 Exporting the library itsef and calling the low level function on javascript,
 it's much more efficient
 
-Take a look to the demo page :) 
+Take a look to the demo page :) and to the post http://coscolla.net/?p=236
 
 1) http://experiments.coscolla.net/img2txt/
 2) http://experiments.coscolla.net/libcaca/
@@ -32,4 +32,7 @@ Instructions to get emscriptten working on macosx
 4) ./emsdk activate latest
 5) export PATH=$PATH:$(WHAT_SAYS_IN_THE_ACTIVATE_STATE)
 
-now you must have emcc, emconfigure and emmake on your path  
+now you must have emcc, emconfigure and emmake in your path  
+
+Remember to do a git submodule init; git submodule update to download the libcaca submodule, and 
+last step simply is execute the scripts to compile :D
