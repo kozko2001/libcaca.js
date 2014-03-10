@@ -1,0 +1,113 @@
+RAW NOTES
+=========
+
+Steps followed during the port, typed just while working
+
+
+tutorial used:
+  http://mozakai.blogspot.com.es/2012/03/howto-port-cc-library-to-javascript.html
+
+1) First patch the library 
+
+2) emconfigure ./configure --disable-doc --disable-slang --disable-java --disable-csharp --disable-ruby
+2.1) if not driver configured error -> patch the ./configure :)
+
+3) goto the folder caca, and run emmake make
+
+4) goto the folder src and run emmake 
+
+## ignore linking errors for now...
+
+5) run:
+copy libz.bc to the folder..
+
+emcc -O2 img2txt-img2txt.o libz.bc img2txt-common-image.o ../caca/.libs/libcaca.a -i img2txt.test.js --embeded-file boy.bmp
+
+6) test the img2txt.test.js
+
+node img2txt.test.js -f ansi boy.bmp
+
+7) write the pre.js
+
+8) compile with pre.js instead of the embeded file..
+
+emcc -O2 img2txt-img2txt.o libz.bc img2txt-common-image.o ../caca/.libs/libcaca.a -i img2txt.js --pre-js pre.js
+
+9) create a reusable module...
+
+create img2txt.module.js
+
+and execute
+
+str="{{{GENERATED_CODE}}}; 
+sed -e "/$str/r img2txt.js" -e "$str/d" img2txt.module.js > img2txt.module2.js
+
+10) use the img2txt.module2.js 
+
+######## 
+
+Using only library.... much faster!!!
+
+emcc -O2 libz.bc .libs/libcaca.a -o test.js -s EXPORTED_FUNCTIONS="['_caca_create_canvas', '_caca_set_canvas_size', '_caca_set_color_ansi', '_caca_clear_canvas', '_caca_set_dither_algorithm', '_caca_create_dither', '_caca_dither_bitmap', '_caca_export_canvas_to_memory']"
+
+once compiled
+
+                postRun: [function() {
+                  alert("LOADED?");
+
+                  caca_create_canvas = Module.cwrap('caca_create_canvas', 'number', ['number', 'number']);
+                  caca_create_dither = Module.cwrap('caca_create_dither', 'number', ['number', 'number', 
+                      'number', 'number', 'number', 'number']);
+                  caca_set_canvas_size = Module.cwrap('caca_set_canvas_size', 'number', ['number', 'number', 'number']);
+                  caca_set_color_ansi = Module.cwrap('caca_set_color_ansi', 'number', ['number', 'number', 'number']);
+                  caca_clear_canvas = Module.cwrap('caca_clear_canvas', 'number', []);
+                  caca_set_dither_algorithm = Module.cwrap('caca_set_dither_algorithm', 'number', ['number', 'string']);
+                  caca_dither_bitmap = Module.cwrap('caca_dither_bitmap', 'number', ['number', 'number', 'number',
+                      'number', 'number', 'number', 'number']);
+                  caca_export_canvas_to_memory = Module.cwrap('caca_export_canvas_to_memory', 'string', ['number', 'string', 'number']);
+
+
+                  var img = [];
+                  var w = 100;
+                  var h = 100;
+
+                  for(var i=0; i<h; i++)
+                  {
+                    for(var j=0; j<w; j++)
+                    {
+                      img.push(i*2 % 255);
+                      img.push(i*2 % 255);
+                      img.push(i*2 % 255);
+                    }
+                  }
+
+                  var cols = 60,
+                      font_w = 6,
+                      font_h = 10;
+                      cv = caca_create_canvas(0, 0),
+                      dither = caca_create_dither(24, w, h, 3 * w, 
+                              0xff0000, 0x00ff00, 0x0000ff, 0x0),
+                      lines = cols * h * font_w / w / font_h ;
+                  caca_set_canvas_size(cv, cols, lines);
+                  caca_set_color_ansi(cv, 0x10, 0x20);
+                  caca_clear_canvas(cv);
+                  caca_set_dither_algorithm(dither, "fstein");
+
+                  var heap = Module._malloc(w*h*3);
+                  typed = new Int8Array(img);
+                  Module.HEAPU8.set(typed, heap);
+
+                  var heap_len = Module._malloc(4);
+                  Module.HEAPU8.set(new Int8Array([0,0,0,0]), heap_len);
+
+                  caca_dither_bitmap(cv, 0, 0, cols, lines, dither, heap);
+                  var len = 0;
+                  var _export = caca_export_canvas_to_memory(cv, "ansi", heap_len); 
+
+                  console.log(getValue(heap_len, 'i8'));
+                  console.log(heap_len);
+
+                  Module._free(heap);
+
+
+                }],
